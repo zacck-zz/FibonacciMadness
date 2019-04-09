@@ -10,4 +10,4 @@ defmodule FibMad.Router do
 
   get("/", do: send_resp(conn, 200, "Welcome to Fibonacci"))
   match(_, do: send_resp(conn, 404, "This server is not capable of that"))
-end 
+end
