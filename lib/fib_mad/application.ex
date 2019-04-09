@@ -15,7 +15,8 @@ defmodule FibMad.Application do
   @spec start(term(), term()) :: {:ok, pid()}
   def start(_type, _args) do
     children = [
-      {Plug.Cowboy, scheme: :http, plug: Router, options: [port: 5006]}
+      {Plug.Cowboy, scheme: :http, plug: Router, options: [port: 5006]},
+      {Fibonacci, []}
     ]
 
     opts = [strategy: :one_for_one, name: FibonacciMadness.Supervisor]
