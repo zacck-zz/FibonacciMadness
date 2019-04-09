@@ -33,7 +33,9 @@ defmodule FibonacciTest do
 
       Fibonacci.calculate(0)
 
-      assert {:ok, [{0, 0}, {3, 4}, {0, 0}]} = Fibonacci.history()
+      assert [{0, 0}, {3, 4}, {0, 0}] = Fibonacci.history()
+
+      assert %{0 => 2, 3 => 1} = Fibonacci.history_count()
     end
   end
 end
