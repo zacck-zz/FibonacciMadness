@@ -35,12 +35,20 @@ defmodule Fibonacci do
     GenServer.call(@name, :history)
   end
 
+  @doc """
+  This function runs a callback to retrieve the current history counts
+  """
+  @spec history_count :: {:ok, map()}
+  def history_count do
+    GenServer.call(@name, :history_count)
+  end
+
   # Server Callbacks
 
   @doc false
   @spec init(term()) :: {:ok, map()}
   def init(_stack) do
-    {:ok, %{history: [], sums: %{}}}
+    {:ok, %{history: [], sums: %{}, history_counts: %{}}}
   end
 
   @doc """
@@ -69,11 +77,19 @@ defmodule Fibonacci do
   end
 
   @doc """
-  This call back retrieves the caluculation history at a particular time
+  This function retrieves the  history count at a time
   """
-  @spec handle_call(:history, pid(), map()) :: {:ok, list(tuple())}
+  @spec handle_call(:history_count, pid(), map()) :: {:reply, {:ok, map()}, map()}
+  def handle_call(:history_count, _from, state) do
+    {:reply, state.history_counts, state}
+  end
+
+  @doc """
+  This call back retrieves the calculation history at a particular time
+  """
+  @spec handle_call(:history, pid(), map()) :: {:reply, {:ok, list(tuple())}, map()}
   def handle_call(:history, _from, %{history: history} = state) do
-    {:reply, {:ok, history}, state}
+    {:reply, history, state}
   end
 
   @doc """
@@ -94,7 +110,21 @@ defmodule Fibonacci do
         false -> Map.put(state.sums, num, total)
       end
 
-    {:noreply, %{state | history: actual_history, sums: new_sums}}
+    new_counts =
+      case Map.has_key?(state.history_counts, num) do
+        true ->
+          {_, counts} =
+            Map.get_and_update(state.history_counts, num, fn current_count ->
+              {current_count, current_count + 1}
+            end)
+
+          counts
+
+        false ->
+          Map.put(state.history_counts, num, 1)
+      end
+
+    {:noreply, %{state | history: actual_history, sums: new_sums, history_counts: new_counts}}
   end
 
   @doc false
