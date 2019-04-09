@@ -27,12 +27,20 @@ defmodule Fibonacci do
     GenServer.call(@name, {:calculate, num})
   end
 
+  @doc """
+  This function retrieves a sequential history of the the sums computed by the `Fibonacci` GenServer
+  """
+  @spec history :: {:ok, list(tuple())}
+  def history do
+    GenServer.call(@name, :history)
+  end
+
   # Server Callbacks
 
   @doc false
   @spec init(term()) :: {:ok, map()}
   def init(_stack) do
-    {:ok, %{}}
+    {:ok, %{history: [], sums: %{}}}
   end
 
   @doc """
@@ -46,8 +54,7 @@ defmodule Fibonacci do
     totals =
       Enum.map(nums, fn num ->
         num
-        |> Sequencer.find()
-        |> Enum.sum()
+        |> calculate_sum(state.sums)
       end)
 
     {:reply, {:ok, totals}, state}
@@ -56,9 +63,56 @@ defmodule Fibonacci do
   def handle_call({:calculate, num}, _from, state) do
     total =
       num
-      |> Sequencer.find()
-      |> Enum.sum()
+      |> calculate_sum(state.sums)
 
     {:reply, {:ok, total}, state}
+  end
+
+  @doc """
+  This call back retrieves the caluculation history at a particular time
+  """
+  @spec handle_call(:history, pid(), map()) :: {:ok, list(tuple())}
+  def handle_call(:history, _from, %{history: history} = state) do
+    {:reply, {:ok, history}, state}
+  end
+
+  @doc """
+  This callback handles the process number message by pushing on to the calculation history and caching the sum of a
+  numbers sequence
+  """
+  @spec handle_info({:process_number, integer(), integer()}, map()) :: {:noreply, map()}
+  def handle_info({:process_number, num, total}, state) do
+    reversed_history = Enum.reverse(state.history)
+
+    intermediate_history = [{num, total} | reversed_history]
+
+    actual_history = Enum.reverse(intermediate_history)
+
+    new_sums =
+      case Map.has_key?(state.sums, num) do
+        true -> state.sums
+        false -> Map.put(state.sums, num, total)
+      end
+
+    {:noreply, %{state | history: actual_history, sums: new_sums}}
+  end
+
+  @doc false
+  @spec calculate_sum(integer(), map()) :: integer()
+  defp calculate_sum(num, sums) do
+    total =
+      case Map.has_key?(sums, num) do
+        true ->
+          Map.get(sums, num)
+
+        false ->
+          num
+          |> Sequencer.find()
+          |> Enum.sum()
+      end
+
+    Process.send(@name, {:process_number, num, total}, [])
+
+    total
   end
 end
