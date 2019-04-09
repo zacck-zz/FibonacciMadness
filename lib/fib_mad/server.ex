@@ -40,10 +40,24 @@ defmodule Fibonacci do
   a given number and then calculates and returns the sum of that sequence
   """
   @spec handle_call({:calculate, integer()}, pid(), map()) :: {:reply, {:ok, term()}, map()}
-  def handle_call({:calculate, num}, _from, state) do
-    seq = Sequencer.find(num)
+  def handle_call(tuple, from, state)
 
-    total = Enum.sum(seq)
+  def handle_call({:calculate, nums}, _from, state) when is_list(nums) do
+    totals =
+      Enum.map(nums, fn num ->
+        num
+        |> Sequencer.find()
+        |> Enum.sum()
+      end)
+
+    {:reply, {:ok, totals}, state}
+  end
+
+  def handle_call({:calculate, num}, _from, state) do
+    total =
+      num
+      |> Sequencer.find()
+      |> Enum.sum()
 
     {:reply, {:ok, total}, state}
   end
