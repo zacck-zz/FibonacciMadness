@@ -10,5 +10,9 @@ defmodule FibonacciTest do
 
       assert {:ok, 4} = Fibonacci.calculate(3)
     end
+
+    test "calculate/1 returns correct results for a list of numbers" do
+      assert {:ok, [0, 4]} = Fibonacci.calculate([0, 3])
+    end
   end
 end
