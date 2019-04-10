@@ -128,8 +128,10 @@ defmodule Fibonacci do
   end
 
   @doc false
-  @spec calculate_sum(integer(), map()) :: integer()
-  defp calculate_sum(num, sums) do
+  @spec calculate_sum(integer(), map()) :: integer() | String.t()
+  defp calculate_sum(term, map)
+
+  defp calculate_sum(num, sums) when is_integer(num) do
     total =
       case Map.has_key?(sums, num) do
         true ->
@@ -145,4 +147,6 @@ defmodule Fibonacci do
 
     total
   end
+
+  defp calculate_sum(_, _), do: "not a number"
 end

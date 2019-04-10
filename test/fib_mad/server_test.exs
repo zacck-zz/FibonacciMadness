@@ -37,5 +37,9 @@ defmodule FibonacciTest do
 
       assert %{0 => 2, 3 => 1} = Fibonacci.history_count()
     end
+
+    test "calculate/1  doesn't crash for non-numbers" do
+      {:ok, "not a number"} = Fibonacci.calculate("name")
+    end
   end
 end
